@@ -218,9 +218,9 @@ void JetAnalyzer::beginJob()
     evtTree->Branch("Vtx_xError", &Vtx_xError, "Vtx_xError[nVtx]/F");
     evtTree->Branch("Vtx_yError", &Vtx_yError, "Vtx_yError[nVtx]/F");
     evtTree->Branch("Vtx_zError", &Vtx_zError, "Vtx_zError[nVtx]/F");
-    evtTree->Branch("Vtx_ndof", &Vtx_ndof, "Vtx_ndof[nVtx]/F");
+    evtTree->Branch("Vtx_ndof", &Vtx_ndof, "Vtx_ndof[nVtx]/I");
     evtTree->Branch("Vtx_chi2", &Vtx_chi2, "Vtx_chi2[nVtx]/F");
-    evtTree->Branch("Vtx_ntrks", &Vtx_ntrks, "Vtx_ntrks[nVtx]/F");
+    evtTree->Branch("Vtx_ntrks", &Vtx_ntrks, "Vtx_ntrks[nVtx]/I");
     evtTree->Branch("Vtx_isValid", &Vtx_isValid, "Vtx_isValid[nVtx]/I");
     evtTree->Branch("Vtx_isFake", &Vtx_isFake, "Vtx_isFake[nVtx]/I");
     evtTree->Branch("Vtx_isGood", &Vtx_isGood, "Vtx_isGood[nVtx]/I");

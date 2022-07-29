@@ -151,7 +151,7 @@ class JetAnalyzer : public edm::EDAnalyzer {
 
         // Track variables
         UInt_t nTrk;
-        UInt_t Trk_charge[kMaxTrk];
+        Int_t Trk_charge[kMaxTrk];
         Float_t Trk_pT[kMaxTrk];
         Float_t Trk_eta[kMaxTrk];
         Float_t Trk_phi[kMaxTrk];
@@ -183,9 +183,9 @@ class JetAnalyzer : public edm::EDAnalyzer {
         Float_t Vtx_xError[kMaxVtx];
         Float_t Vtx_yError[kMaxVtx];
         Float_t Vtx_zError[kMaxVtx];
-        Float_t Vtx_ndof[kMaxVtx];
+        UInt_t Vtx_ndof[kMaxVtx];
         Float_t Vtx_chi2[kMaxVtx];
-        Float_t Vtx_ntrks[kMaxVtx];
+        UInt_t Vtx_ntrks[kMaxVtx];
         UInt_t Vtx_isValid[kMaxVtx];
         UInt_t Vtx_isFake[kMaxVtx];
         UInt_t Vtx_isGood[kMaxVtx];
