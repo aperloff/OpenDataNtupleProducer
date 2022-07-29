@@ -1,23 +1,27 @@
-# JetNtupleProducerTool - a Jet tuple producer from CMS OpenData MiniAOD
+# OpenDataNtupleProducer - a tuple producer from CMS OpenData MiniAOD which saves jets, tracks, and vertices
 
 This is a CMSSW module for producing mostly flat tuples from 13 TeV Run2 MC samples.
 
-The code is intended to run inside the CMS Virtual Machine environment.
+The code is intended to run inside the CMS Virtual Machine or Docker environments.
+
+It is based on the CERN Open Data sample code here: https://opendata.cern.ch/record/12100
 
 ## Setting up
 
 First install the CMS Virtual Machine as per instructions here: http://opendata.cern.ch/docs/cms-virtual-machine-2011
 
+Alternatively you can use one of the Docker images located at: https://gitlab.cern.ch/cms-cloud/cmssw-docker/container_registry
+
 Then open up the terminal and create the work area:
 ```
 mkdir WorkingArea
 cd WorkingArea
-cmsrel CMSSW_8_0_26
-cd CMSSW_8_0_26/src
+cmsrel CMSSW_8_0_26_patch2
+cd CMSSW_8_0_26_patch2/src
 cmsenv                  # activates the CMSSW environment
-git clone https://github.com/cms-opendata-analyses/JetNtupleProducerTool/
+git clone https://github.com/aperloff/OpenDataNtupleProducer.git
 scram b                 # compiles the code
-cd JetNtupleProducerTool/JetAnalyzer
+cd OpenDataNtupleProducer/JetAnalyzer
 ```
 
 ## Running the code
@@ -29,12 +33,12 @@ To generate the ntuples, execute
 cmsRun python/ConfFile_cfg.py
 ```
 
-This configuration file runs the ```plugins/JetAnalyzer.cc``` code, which performs the data processing and extracts the jets from collision events. There is an additional configuration file ```python/QGLikelihood_cfi.py```, which is there for the quark/gluon jet likelihood variables. It references the ```database/QGL_cmssw8020_v2.db``` file. There is no need to touch these QGL files.
+This configuration file runs the ```plugins/JetAnalyzer.cc``` code, which performs the data processing and extracts the jets, tracks, and vertices from collision events. There is an additional configuration file ```python/QGLikelihood_cfi.py```, which is there for the quark/gluon jet likelihood variables. It references the ```database/QGL_cmssw8020_v2.db``` file. There is no need to touch these QGL files.
 
 ## Data exploration
 To quickly explore the created file, first load it up in ROOT
 ```
-root -l JetNtuple_RunIISummer16_13TeV_MC.root
+root -l OpenDataNtuple_RunIISummer16_13TeV_MC.root
 ```
 Here you can create a ```TBrowser``` and examine the contents of the file and the distributions for each variable.
 ```
@@ -43,9 +47,9 @@ new TBrowser
 
 ## Content of the tuples
 
-Variables are saved to ROOT trees jet by jet.
+This program is capable of saving two different ROOT trees. One tree (`jetTree`) contains values relevant to a given jet and entries are saved on a jet-by-jet basis. The other tree (`evtTree`) contains track and vertex information and entries are saved on an event-by-event basis.
 
-In this version, the reconstructed jets are AK4 jets clustered from Particle Flow candidates. The standard L1+L2+L3+residual energy corrections are applied to the jets and pileup is reduced using the CHS algorithm.
+In `jetTree`, the reconstructed jets are AK4 jets clustered from Particle Flow candidates. The standard L1+L2+L3+residual energy corrections are applied to the jets and pileup is reduced using the CHS algorithm. The following table lists the branches available in that tree:
 
 | Data variable | Type | Description |
 | :---------------------- | -----------------: | :---------------------- |
@@ -106,12 +110,55 @@ In this version, the reconstructed jets are AK4 jets clustered from Particle Flo
 | event | ULong64_t | Event number |
 | run | UInt_t | Run number |
 | lumi | UInt_t | Luminosity block |
-| pthat | Float_t | Transverse momentum of the generated hard process |
-| eventWeight | Float_t | Weight assigned to the generated event |
-| rhoAll | Float_t | The median density (in GeV/A) of pile-up contamination per event; computed from all PF candidates of the event |
-| rhoCentral | Float_t | Same as above, computed from all PF candidates with \|η\| < 2.5 |
-| rhoCentralNeutral | Float_t | Same as above, computed from all neutral PF candidates with \|η\| < 2.5 |
-| rhoCentralChargedPileUp | Float_t | Same as above, computed from all PF charged hadrons associated to pileup vertices and with \|η\| < 2.5 |
-| PV_npvsGood | UInt_t | The number of good reconstructed primary vertices |
-| Pileup_nPU | UInt_t | The number of pileup interactions that have been added to the event in the current bunch crossing |
-| Pileup_nTrueInt | Float_t | The true mean number of the poisson distribution for this event from which the number of interactions in each bunch crossing has been sampled |
+
+The following table lists the branches available in `evtTree` tree:
+
+| Data variable | Type | Description |
+| :---------------------- | -----------------: | :---------------------- |
+| event | ULong64_t | Event number |
+| run | UInt_t | Run number |
+| lumi | UInt_t | Luminosity block |
+| pthat | Float_t | Transverse momentum of the generated hard process |
+| eventWeight | Float_t | Monte Carlo generator weight |
+| rhoAll | Float_t | The median density (in GeV/A) of pile-up contamination per event; computed from all PF candidates |
+| rhoCentral | Float_t | The median density (in GeV/A) of pile-up contamination per event; computed from all PF candidates with |eta|<2.5 |
+| rhoCentralNeutral | Float_t | The median density (in GeV/A) of pile-up contamination per event; computed from all neutral PF candidates with |eta| < 2.5 |
+| rhoCentralChargedPileUp | Float_t | The median density (in GeV/A) of pile-up contamination per event; computed from all PF charged hadrons associated to pileup vertices and with |eta| < 2.5 |
+| PV_npvsGood | UInt_t | The number of good reconstructed primary vertices; selection: !isFake && ndof > 4 && abs(z) <= 24 && position.Rho < 2 |
+| Pileup_nPU | UInt_t | The number of pileup interactions that have been added to the event in the current bunch crossing |
+| Pileup_nTrueInt | UInt_t | The true mean number of the poisson distribution for this event from which the number of interactions in each bunch crossing has been sampled |
+| nTrk | UInt_t | Number of tracks; contains all tracks matched to particle flow candidates and the lost tracks (tracks not matched to particle flow candidates) |
+| Trk_charge[nTrk] | Int_t | Charge of a track |
+| Trk_pT[nTrk] | Float_t | Transverse momentum of a track [GeV] |
+| Trk_eta[nTrk] | Float_t | Pseudorapidity of a track |
+| Trk_phi[nTrk] | Float_t | Azimuthal angle of a track |
+| Trk_px[nTrk] | Float_t | x coordinate of the track mometum vector [cm] |
+| Trk_py[nTrk] | Float_t | y coordinate of the track mometum vector [cm] |
+| Trk_pz[nTrk] | Float_t | z coordinate of the track mometum vector [cm] |
+| Trk_x[nTrk] | Float_t | Position of the track along the x direction at its reference point [cm] |
+| Trk_y[nTrk] | Float_t | Position of the track along the y direction at its reference point [cm] |
+| Trk_z[nTrk] | Float_t | Position of the track along the beamline at its reference point [cm] |
+| Trk_dxypv[nTrk] | Float_t | Transverse impact parameter of the track [cm] |
+| Trk_dxyerrorpv[nTrk] | Float_t | Error on the transverse impact parameter of the track [cm] |
+| Trk_dzpv[nTrk] | Float_t | Longitudinal impact parameter of the track [cm] |
+| Trk_dzerrorpv[nTrk] | Float_t | Error on the longitudinal impact parameter of the track [cm] |
+| Trk_isLost[nTrk] | UInt_t | Indicates if the track was part of the lostTracks collections (i.e. not matched to a PF candidate) |
+| nGenVtx | UInt_t | Number of generator level primary vertices |
+| GenVtx_x[nGenVtx] | Float_t | x coordinate of a generator level primary vertex [cm] |
+| GenVtx_y[nGenVtx] | Float_t | y coordinate of a generator level primary vertex [cm] |
+| GenVtx_z[nGenVtx] | Float_t | z coordinate of a generator level primary vertex [cm] |
+| GenVtx_sumPt[nGenVtx] | Float_t | Sum of the pT of the generator particles associated to this vertex [GeV] |
+| GenVtx_sumPt2[nGenVtx] | Float_t | Sum of the pT^2 of the generator particles associated to this vertex [GeV^2] |
+| nVtx | UInt_t | Number of primary vertices |
+| Vtx_x[nVtx] | Float_t | x coordinate of a primary vertex [cm] |
+| Vtx_y[nVtx] | Float_t | y coordinate of a primary vertex [cm] |
+| Vtx_z[nVtx] | Float_t | z coordinate of a primary vertex [cm] |
+| Vtx_xError[nVtx] | Float_t | Error on the x positon of a primary vertex [cm] |
+| Vtx_yError[nVtx] | Float_t | Error on the y positon of a primary vertex [cm] |
+| Vtx_zError[nVtx] | Float_t | Error on the z positon of a primary vertex [cm] |
+| Vtx_ndof[nVtx] | UInt_t | Number of degrees of freedom of the primary vertex fit |
+| Vtx_chi2[nVtx] | Float_t | Chi square of the primary vertex fit |
+| Vtx_ntrks[nVtx] | UInt_t | Number of tracks associated to a primary vertex |
+| Vtx_isValid[nVtx] | UInt_t | Indicates if a primary vertex is valid |
+| Vtx_isFake[nVtx] | UInt_t | Indicates if a primary vertex is fake |
+| Vtx_isGood[nVtx] | UInt_t | Indicates if a primary vertex is good |
