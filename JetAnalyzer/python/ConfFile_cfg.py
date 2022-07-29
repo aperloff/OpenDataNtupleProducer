@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 import os
 
-process = cms.Process("AK4jets")
+process = cms.Process("Events")
 
 # QG likelihood
 process.load("JetNtupleProducerTool.JetAnalyzer.QGLikelihood_cfi")
@@ -25,12 +25,17 @@ process.source = cms.Source("PoolSource",
 	# fileNames = cms.untracked.vstring(fileList[0])
 )
 
-process.AK4jets = cms.EDAnalyzer("JetAnalyzer",
+process.Events = cms.EDAnalyzer("JetAnalyzer",
+	saveJetTree = cms.bool(False),
 	## jet, PF and generator level collections ##
 	jets = cms.InputTag("slimmedJets"),
 	pfCands = cms.InputTag("packedPFCandidates"),
 	genJets = cms.InputTag("slimmedGenJets"),
 	genEventInfo = cms.InputTag("generator"),
+	## extra track collections
+	extraTracks = cms.InputTag("lostTracks"),
+	## gen particles collection
+	genParticles = cms.InputTag("prunedGenParticles"),
 	## good primary vertices ##
 	vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
 	confGoodVtxNdof = cms.double(4),
@@ -51,4 +56,4 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
-process.p = cms.Path(process.QGTagger + process.AK4jets)
+process.p = cms.Path(process.QGTagger + process.Events)

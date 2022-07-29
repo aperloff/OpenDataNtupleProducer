@@ -14,6 +14,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/Point3D.h"
+#include "DataFormats/Math/interface/Vector3D.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
 // File service for saving the ROOT files
@@ -51,11 +53,16 @@ class JetAnalyzer : public edm::EDAnalyzer {
         ~JetAnalyzer();
 
     private:
+        // Configuration flags
+        bool saveJetTree_;
+
         // Tokens
         edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
         edm::EDGetTokenT<pat::JetCollection> jetToken_;
         edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
-      	edm::EDGetTokenT<edm::View<pat::PackedGenParticle> > packedGenToken_;
+        edm::EDGetTokenT<pat::PackedCandidateCollection> extraTracksToken_;
+        edm::EDGetTokenT<reco::GenParticleCollection> genPartToken_;
+        edm::EDGetTokenT<edm::View<pat::PackedGenParticle> > packedGenToken_;
         edm::EDGetTokenT<reco::GenJetCollection> EDMGenJetsToken_;
         edm::EDGetTokenT<GenEventInfoProduct> genEventInfoToken_;
         edm::EDGetTokenT<std::vector<PileupSummaryInfo >> pileupInfoToken_;
@@ -81,11 +88,14 @@ class JetAnalyzer : public edm::EDAnalyzer {
 
         TFile* outputFile;
         TTree* jetTree;
+        TTree* evtTree;
 
         // -------------------------
         // TTree variables
         // -------------------------
         static const UInt_t kMaxPF = 5000;
+        static const UInt_t kMaxTrk = kMaxPF;
+        static const UInt_t kMaxVtx = kMaxTrk;
 
         // Jet variables
         Float_t jetPt;
@@ -138,6 +148,47 @@ class JetAnalyzer : public edm::EDAnalyzer {
         Int_t PF_id[kMaxPF];
         UInt_t PF_fromPV[kMaxPF];
         UInt_t PF_fromAK4Jet[kMaxPF];
+
+        // Track variables
+        UInt_t nTrk;
+        UInt_t Trk_charge[kMaxTrk];
+        Float_t Trk_pT[kMaxTrk];
+        Float_t Trk_eta[kMaxTrk];
+        Float_t Trk_phi[kMaxTrk];
+        Float_t Trk_px[kMaxTrk];
+        Float_t Trk_py[kMaxTrk];
+        Float_t Trk_pz[kMaxTrk];
+        Float_t Trk_x[kMaxTrk];
+        Float_t Trk_y[kMaxTrk];
+        Float_t Trk_z[kMaxTrk];
+        Float_t Trk_dxypv[kMaxTrk];
+        Float_t Trk_dxyerrorpv[kMaxTrk];
+        Float_t Trk_dzpv[kMaxTrk];
+        Float_t Trk_dzerrorpv[kMaxTrk];
+        UInt_t Trk_isLost[kMaxTrk];
+
+        // Generator level primary vertex variables
+        UInt_t nGenVtx;
+        Float_t GenVtx_x[kMaxVtx];
+        Float_t GenVtx_y[kMaxVtx];
+        Float_t GenVtx_z[kMaxVtx];
+        Float_t GenVtx_sumPt[kMaxVtx];
+        Float_t GenVtx_sumPt2[kMaxVtx];
+
+        // Primary vertex variables
+        UInt_t nVtx;
+        Float_t Vtx_x[kMaxVtx];
+        Float_t Vtx_y[kMaxVtx];
+        Float_t Vtx_z[kMaxVtx];
+        Float_t Vtx_xError[kMaxVtx];
+        Float_t Vtx_yError[kMaxVtx];
+        Float_t Vtx_zError[kMaxVtx];
+        Float_t Vtx_ndof[kMaxVtx];
+        Float_t Vtx_chi2[kMaxVtx];
+        Float_t Vtx_ntrks[kMaxVtx];
+        UInt_t Vtx_isValid[kMaxVtx];
+        UInt_t Vtx_isFake[kMaxVtx];
+        UInt_t Vtx_isGood[kMaxVtx];
 
         // Generator level jet variables
         Float_t genJetPt;
