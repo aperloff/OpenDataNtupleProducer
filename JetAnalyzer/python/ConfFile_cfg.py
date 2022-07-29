@@ -5,17 +5,17 @@ import os
 process = cms.Process("Events")
 
 # QG likelihood
-process.load("JetNtupleProducerTool.JetAnalyzer.QGLikelihood_cfi")
+process.load("OpenDataNtupleProducer.JetAnalyzer.QGLikelihood_cfi")
 process.load("RecoJets.JetProducers.QGTagger_cfi")
 process.QGTagger.srcJets = cms.InputTag("slimmedJets")
 process.QGTagger.jetsLabel = cms.string("QGL_AK4PFchs")
 
 # File service
 process.load("CommonTools.UtilAlgos.TFileService_cfi")
-process.TFileService.fileName=cms.string("JetNtuple_RunIISummer16_13TeV_MC.root")
+process.TFileService.fileName=cms.string("OpenDataNtuple_RunIISummer16_13TeV_MC.root")
 
 # Load up the filelist
-filePath=os.environ["CMSSW_BASE"]+"/src/JetNtupleProducerTool/JetAnalyzer/python/"
+filePath=os.environ["CMSSW_BASE"]+"/src/OpenDataNtupleProducer/JetAnalyzer/python/"
 fileList = FileUtils.loadListFromFile(filePath+"RunIISummer16MiniAODv2_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_PUMoriond17_magnetOn_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1_filelist.txt")
 
 process.source = cms.Source("PoolSource",
